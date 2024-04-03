@@ -33,6 +33,25 @@ const TicTacToe = () => {
     handleCheckWinner();
   }, [tile]);
 
+  useEffect(() => {
+    console.log(playerTurn)
+    if (playerTurn === "O") {
+      const emptyTiles = tile.reduce((acc, val, index) => {      
+        if (val === "") {  
+          acc.push(index)
+        };
+        return acc;
+      },[] );
+      console.log(emptyTiles.length,"emptyTiles")
+      const randomIndex = emptyTiles[Math.floor(Math.random() * emptyTiles.length)]; 
+      const newTile = [...tile];
+      newTile[randomIndex] = "O";
+      setTile(newTile);
+      setPlayerTurn("X");
+    }
+  }, [playerTurn, tile]);
+
+  
   const handleTileClick = (i) => {
     if (!winner && tile[i] === "") {
       const newTile = [...tile];
@@ -64,14 +83,14 @@ const TicTacToe = () => {
           </div>
         ))}
       </div>
-    
+
       <div className="winningmessage">
-          {winner && (
-        <h1>
-          {winner !== "draw" && "Winner:"}
-          {winner === "draw" ? "X-O / Draw" : winner}
-        </h1>
-      )}
+        {winner && (
+          <h1>
+            {winner !== "draw" && "Winner:"}
+            {winner === "draw" ? "X-O / Draw" : winner}
+          </h1>
+        )}
         <button onClick={HandleResetGame} className="reset-button">
           Play Again
         </button>
