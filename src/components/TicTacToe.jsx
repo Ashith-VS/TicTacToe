@@ -16,42 +16,54 @@ const TicTacToe = () => {
     [2, 4, 6],
   ];
 
-  const handleCheckWinner = () => {
+  const handleCheckWinner = (tile) => {
     for (let condition of winningConditions) {
       const [a, b, c] = condition;
       if (tile[a] && tile[a] === tile[b] && tile[b] === tile[c]) {
-        setWinner(tile[a]);
-        console.log(tile[a]);
+        return tile[a];
       }
     }
     if (tile.every((value) => value !== "")) {
-      setWinner("draw");
+      return "draw";
     }
   };
 
-  useEffect(() => {
-    handleCheckWinner();
-  }, [tile]);
+  const findBestMove = (tile, playerTurn) => {
+    let bestScore = -1;
+    let bestMove = null;
 
-  useEffect(() => {
-    console.log(playerTurn)
-    if (playerTurn === "O") {
-      const emptyTiles = tile.reduce((acc, val, index) => {      
-        if (val === "") {  
-          acc.push(index)
-        };
-        return acc;
-      },[] );
-      console.log(emptyTiles.length,"emptyTiles")
-      const randomIndex = emptyTiles[Math.floor(Math.random() * emptyTiles.length)]; 
-      const newTile = [...tile];
-      newTile[randomIndex] = "O";
-      setTile(newTile);
-      setPlayerTurn("X");
+    for (let i = 0; i < 9; i++) {
+      if (tile[i] === "") {
+        const newBoard = [...tile];
+        newBoard[i] = playerTurn;
+        const result = minimax(newBoard, playerTurn, false);
+        if (result > bestScore) {
+          bestMove = i;
+        }
+      }
     }
-  }, [playerTurn, tile]);
+    return bestMove;
+  };
 
-  
+  const minimax = (board, player, maximizingPlayer) => {
+    const result = handleCheckWinner(board);
+    if (result) {
+      return result === "X" ? -1 : result === "O" ? 1 : 0;
+    }
+
+    let bestScore = maximizingPlayer ? -1 : 1;
+    const currentPlayer = maximizingPlayer? player: player === "X"? "O": "X";
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === "") {
+        const newBoard = [...board];
+        newBoard[i] = currentPlayer;
+        const score = minimax(newBoard, player, !maximizingPlayer);
+        bestScore = maximizingPlayer? Math.max(bestScore, score): Math.min(bestScore, score);
+      }
+    }
+    return bestScore;
+  };
+
   const handleTileClick = (i) => {
     if (!winner && tile[i] === "") {
       const newTile = [...tile];
@@ -60,6 +72,19 @@ const TicTacToe = () => {
       setPlayerTurn(playerTurn === "X" ? "O" : "X");
     }
   };
+
+  useEffect(() => {
+    const gameResult = handleCheckWinner(tile);
+    if (gameResult) {
+      setWinner(gameResult);
+      return;
+    }
+    if (playerTurn === "O") {
+      const bestMove = findBestMove(tile, playerTurn);
+      handleTileClick(bestMove);
+      console.log(bestMove);
+    }
+  }, [tile, playerTurn]);
 
   const HandleResetGame = () => {
     setTile(Array(9).fill(""));
